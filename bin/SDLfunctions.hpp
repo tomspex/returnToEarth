@@ -10,6 +10,7 @@ void initSDL(SDL_Window *win, SDL_Renderer *ren) {
 
     SDL_Init(SDL_INIT_EVERYTHING);
     Mix_Init(0);
+    TTF_Init();
 
     SDL_RenderClear(ren);
     SDL_RenderPresent(ren);
@@ -46,3 +47,11 @@ void fpsCap(Uint64 start, Uint64 end) {
 }
 
 // ==============================================================
+
+int updateClock(int clockIn) {
+    clockIn++;
+    if(clockIn >= 60) {
+        clockIn = 0;
+    }
+    return(clockIn);
+}

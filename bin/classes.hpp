@@ -15,6 +15,7 @@ class bg {
             bgRect0.h = bgSurface->h;
             bgRect1.w = bgSurface->w;
             bgRect1.h = bgSurface->h;
+            scroll = 0;
         }
         void scrollBG() {
             scroll -= 5;
@@ -34,15 +35,18 @@ class player {
     private:
         SDL_Surface *playerSurface = IMG_Load("assets/images/player.png");
         SDL_Rect playerRect;
+        const int initPlayerHealth = 3;
         int posX,
             posY, 
             playerWidth = 60,
             playerHeight = 60,
-            playerHealth = 3,
+            playerHealth = initPlayerHealth,
             playerSpeed = 5;
         bool flipSprite;
     public:
         void initPlayer() {
+            posY = HEIGHT/2;
+            posX = 10;
             playerRect.h = playerHeight;
             playerRect.w = playerWidth;
         }
@@ -74,8 +78,33 @@ class player {
                 SDL_RenderCopy(renderer, playerTexture, NULL, &playerRect);
             }
         }
-        void hurt() {
+        int getHealth() {
+            return(playerHealth);
+        }
+        int hurt() {
+            playerHealth -= 1;
+            return(playerHealth);
+        }
+        void gameOver() {
+            bool waiting = true;
+            while(waiting) {
+                posX -= 10;
+                if(posX <= -playerWidth) {
+                    posX = -playerWidth;
+                }
+                const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+                if(keyState[RESTART_KEY]) {
+                    playerHealth = initPlayerHealth;
+                    initPlayer();
+                    score = 0;
+                    
+                    waiting = false;
+                }
+                SDL_Delay(30);
 
+                SDL_Event e;
+                while( SDL_PollEvent( &e ) != 0 ) {}
+            }
         }
         SDL_Rect getPlayerRect() {
             return(playerRect);
@@ -99,6 +128,7 @@ class cube {
         void initCube() {
             cubeRect.w = width;
             cubeRect.h = height;
+            posX = -64;
             cubeClip.y = 0;
             cubeClip.w = 40;
             cubeClip.h = 40;
@@ -119,7 +149,6 @@ class cube {
             cubeRect.x = posX;
             cubeRect.y = posY;
             cubeClip.x = animCount*40;
-            cout << cubeRect.x << " - X " << cubeRect.y << " - Y " << now << " - now " << wait << " - wait " << "\n";
             SDL_Texture *cubeTexture = SDL_CreateTextureFromSurface(renderer, cubeSurface);
             SDL_RenderCopy(renderer, cubeTexture, &cubeClip, &cubeRect);
             animCount++;
@@ -193,27 +222,71 @@ class audio {
             Mix_PlayChannel(0, hurtChunk, 0);
         }
 };
-/*
 class text {
     private:
-        TTF_Font *comicMono = TTF_OpenFont("assets/fonts/comicMono.ttf", 24);
+        TTF_Font *comicMono = TTF_OpenFont("assets/fonts/comicMono.ttf", 16);
+        TTF_Font *comicGameOver = TTF_OpenFont("assets/fonts/comicMono.ttf", 64);
         SDL_Color White = {255, 255, 255};
         //Text contents
         SDL_Surface *objective = TTF_RenderText_Solid(comicMono, "NULL", White);
+        SDL_Surface *health = TTF_RenderText_Solid(comicMono, "NULL", White);
         SDL_Surface *score = TTF_RenderText_Solid(comicMono, "NULL", White);
-        
+        SDL_Surface *gameOver = TTF_RenderText_Blended(comicGameOver, "Game Over!", White);
+        SDL_Surface *gameOverSubtext = TTF_RenderText_Blended(comicMono, "Press T to Restart", White);
+
+        SDL_Rect objectiveRect;
+        SDL_Rect healthRect;
+        SDL_Rect scoreRect;
+        SDL_Rect gameOverRect;
+        SDL_Rect gameOverSubtextRect;
     public:
-        void updateObjective(const char *objectiveName) {
-            objective = TTF_RenderText_Solid(comicMono, objectiveName, White);
+        void initText() {
+            objectiveRect.x = 5;
+            objectiveRect.y = 5;
+            healthRect.x = 5;
+            healthRect.y = 25;
+            scoreRect.x = 5;
+            scoreRect.y = 45;
+            gameOverRect.x = WIDTH/2-gameOver->w/2;
+            gameOverRect.y = HEIGHT/2-gameOver->h;
+            gameOverRect.w = gameOver->w;
+            gameOverRect.h = gameOver->h;
+            gameOverSubtextRect.x = WIDTH/2-gameOverSubtext->w/2;
+            gameOverSubtextRect.y = HEIGHT/2+10;
+            gameOverSubtextRect.w = gameOverSubtext->w;
+            gameOverSubtextRect.h = gameOverSubtext->h;
         }
-        void updateScore(const char *scoreInt) {
-            score = TTF_RenderText_Solid(comicMono, scoreInt, White);
+        void updateObjective(const char *objectiveName) {
+            objective = TTF_RenderText_Blended(comicMono, objectiveName, White);
+            objectiveRect.w = objective->w;
+            objectiveRect.h = objective->h; 
+        }
+        void updateHealth(int newHealth) {
+            string intToString = "Health: ";
+            intToString += to_string(newHealth);
+            health = TTF_RenderText_Blended(comicMono, intToString.c_str(), White);
+            healthRect.w = health->w;
+            healthRect.h = health->h; 
+        }
+        void updateScore(int scoreInt) {
+            string intToString = "Score: ";
+            intToString += to_string(scoreInt);
+            score = TTF_RenderText_Blended(comicMono, intToString.c_str(), White);
+            scoreRect.w = score->w;
+            scoreRect.h = score->h; 
         }
         void drawText(SDL_Renderer *renderer) {
             SDL_Texture *objectiveTexture = SDL_CreateTextureFromSurface(renderer, objective);
+            SDL_Texture *healthTexture = SDL_CreateTextureFromSurface(renderer, health);
             SDL_Texture *scoreTexture = SDL_CreateTextureFromSurface(renderer, score);
-            SDL_RenderCopy(renderer, objectiveTexture, NULL, NULL);
-            SDL_RenderCopy(renderer, scoreTexture, NULL, NULL);
+            SDL_RenderCopy(renderer, objectiveTexture, NULL, &objectiveRect);
+            SDL_RenderCopy(renderer, healthTexture, NULL, &healthRect);
+            SDL_RenderCopy(renderer, scoreTexture, NULL, &scoreRect);
+        }
+        void gameOverText(SDL_Renderer *renderer) {
+            SDL_Texture *gameOverTexture = SDL_CreateTextureFromSurface(renderer, gameOver);
+            SDL_Texture *gameOverSubtextTexture = SDL_CreateTextureFromSurface(renderer, gameOverSubtext);
+            SDL_RenderCopy(renderer, gameOverTexture, NULL, &gameOverRect);
+            SDL_RenderCopy(renderer, gameOverSubtextTexture, NULL, &gameOverSubtextRect);
         }
 };
-*/

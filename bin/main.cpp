@@ -1,7 +1,7 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
+#include "include/SDL2/SDL.h"
+#include "include/SDL2/SDL_image.h"
+#include "include/SDL2/SDL_mixer.h"
+#include "include/SDL2/SDL_ttf.h"
 #include "constants.hpp"
 #include "SDLfunctions.hpp"
 #include "classes.hpp"
@@ -11,11 +11,10 @@ int main() {
     SDL_Window   *mainWindow = NULL;
     SDL_Renderer *mainRenderer = NULL;
     initSDL(mainWindow, mainRenderer);
-    mainWindow = SDL_CreateWindow("SDL Image", 100, 100, WIDTH, HEIGHT, 0);
+    mainWindow = SDL_CreateWindow("Return to Earth", 100, 100, WIDTH, HEIGHT, 0);
 	mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
     //SDL_RenderSetLogicalSize(mainRenderer, 320, 240);
     // ============= Window Setup End ==============
-    
 
     audio audio;
     audio.initMusic();
@@ -24,10 +23,15 @@ int main() {
     bg bg;
     player player;
     cubeBunch cubeBunch;
+    text text;
     
     bg.initBG();
     player.initPlayer();
     cubeBunch.initCubes();
+    text.initText();
+    text.updateObjective("Objective: Get to Earth");
+    text.updateHealth(player.getHealth());
+    text.updateScore(0);
     
 
     bool quit = false;
@@ -40,14 +44,39 @@ int main() {
         player.playerMovement();
         cubeBunch.scrollCubes();
 
-        if(cubeBunch.detectCollisions(player.getPlayerRect())) {
-            //player.hurt();
-            audio.playHurt();
-        }
-
         bg.drawBG(mainRenderer);
         player.drawPlayer(mainRenderer);
         cubeBunch.drawCubes(mainRenderer);
+        text.drawText(mainRenderer);
+
+        if(cubeBunch.detectCollisions(player.getPlayerRect())) {
+            if(!alreadyHit) {
+                alreadyHit = 1;
+                health = player.hurt();
+                text.updateHealth(health);
+                audio.playHurt();
+
+                if(health == 0) {
+                    text.gameOverText(mainRenderer);
+                    SDL_RenderPresent(mainRenderer);
+                    player.gameOver();
+                    bg.initBG();
+                    cubeBunch.initCubes();
+                    bg.drawBG(mainRenderer);
+                    cubeBunch.drawCubes(mainRenderer);
+                    health = player.getHealth();
+                }
+            }
+        }else {
+            alreadyHit = 0;
+        }
+
+
+        if(clockI == 0) {
+            score++;
+            text.updateScore(score);
+        }
+        clockI = updateClock(clockI);
 
         // ============  Game Code End  =============
         SDL_Event e;
