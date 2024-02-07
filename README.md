@@ -13,19 +13,18 @@ I didn't include the dependencies in this repository. You'll have to find them e
 
 <h3>Current State</h3>
 <p>The game currently has movement, sprites, music, sounds, scrolling cubes, a scrolling star background,
-a gameover screen, a score-health-objective system with a small UI and a restart button.</p>
+a gameover screen, a score-health-objective system with a small UI, an NPC of the Space Core, and a restart button.</p>
 
 <h3>Goals</h3>
-<p>I want to add an npc with dialogue, levels and perhaps an end sequence in the future.
-I'm certain this list will grow.</p>
+<p>I want to add levels and perhaps an end sequence in the future. I'll think of more goals later.</p>
 
 <h3>Demonstration</h3>
 <p>Click the image to view the demonstration on YouTube.</p>
-<a href="https://www.youtube.com/watch?v=7snsXcVeIFc">
-    <img src="https://img.youtube.com/vi/7snsXcVeIFc/0.jpg">
+<a href="https://www.youtube.com/watch?v=I_pJD5vCtB8">
+    <img src="https://img.youtube.com/vi/I_pJD5vCtB8/0.jpg">
 </a>
 <h1>Bye Now</h1>
 <div style="display:flex;">
-    <img style="width:100px;height:100px;" src="bin/assets/images/wheatley.png">
+    <img style="width:100px;height:100px;" src="bin/assets/images/player.png">
     <img style="width:100px;height:100px;" src="bin/assets/images/npc.png">
 </div>
