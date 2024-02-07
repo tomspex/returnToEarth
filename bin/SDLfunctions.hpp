@@ -21,6 +21,8 @@ void initSDL(SDL_Window *win, SDL_Renderer *ren) {
 void quitSDL(SDL_Window *win, SDL_Renderer *ren) {
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
+    Mix_Quit();
+    TTF_Quit();
     SDL_Quit();
 }
 
