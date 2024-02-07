@@ -5,28 +5,71 @@ using namespace std;
 
 class bg {
     private:
-        SDL_Surface *bgSurface = IMG_Load("assets/images/bg.png");
-        SDL_Rect bgRect0;
-        SDL_Rect bgRect1;
-        int scroll;
+        SDL_Surface *bgSurface = IMG_Load("assets/images/bg/bg.png");
+        SDL_Surface *bg1Surface = IMG_Load("assets/images/bg/bg1.png");
+        SDL_Surface *bg2Surface = IMG_Load("assets/images/bg/bg2.png");
+        SDL_Rect bgRect0, bgRect1, bgRect2, bgRect3, bgRect4, bgRect5;
+        int scroll0, scroll1, scroll2, shakeX;
+        bool shake = 0;
     public:
         void initBG() {
             bgRect0.w = bgSurface->w;
-            bgRect0.h = bgSurface->h;
             bgRect1.w = bgSurface->w;
+            bgRect2.w = bgSurface->w;
+            bgRect3.w = bgSurface->w;
+            bgRect4.w = bgSurface->w;
+            bgRect5.w = bgSurface->w;
+            bgRect0.h = bgSurface->h;
             bgRect1.h = bgSurface->h;
-            scroll = 0;
+            bgRect2.h = bgSurface->h;
+            bgRect3.h = bgSurface->h;
+            bgRect4.h = bgSurface->h;
+            bgRect5.h = bgSurface->h;
+            scroll0 = 0;
+            scroll1 = 0;
         }
         void scrollBG() {
-            scroll -= 5;
-            if (abs(scroll) > bgRect0.w) {
-                scroll = 0;
+            scroll0 -= 3;
+            scroll1 -= 2;
+            scroll2 -= 1;
+            if (abs(scroll0) > bgRect0.w) {
+                scroll0 = 0;
+            }
+            if (abs(scroll1) > bgRect2.w) {
+                scroll1 = 0;
+            }
+            if (abs(scroll2) > bgRect4.w) {
+                scroll2 = 0;
+            }
+            
+            if(shake) {
+                scroll0 -= shakeX;
+                scroll1 -= shakeX;
+                scroll2 -= shakeX;
+                shakeX--;
+                if(shakeX <= 0) {
+                    shake = 0;
+                }
             }
         }
+        void shakeBG() {
+            shake = 1;
+            shakeX = 10;
+        }
         void drawBG(SDL_Renderer *renderer) {
-            bgRect0.x = scroll;
-            bgRect1.x = scroll + bgRect0.w;
+            bgRect0.x = scroll0;
+            bgRect1.x = scroll0 + bgRect0.w;
+            bgRect2.x = scroll1;
+            bgRect3.x = scroll1 + bgRect2.w;
+            bgRect4.x = scroll2;
+            bgRect5.x = scroll2 + bgRect4.w;
             SDL_Texture *bgTexture = SDL_CreateTextureFromSurface(renderer, bgSurface);
+            SDL_Texture *bg1Texture = SDL_CreateTextureFromSurface(renderer, bg1Surface);
+            SDL_Texture *bg2Texture = SDL_CreateTextureFromSurface(renderer, bg2Surface);
+            SDL_RenderCopy(renderer, bg2Texture, NULL, &bgRect4);
+            SDL_RenderCopy(renderer, bg2Texture, NULL, &bgRect5);
+            SDL_RenderCopy(renderer, bg1Texture, NULL, &bgRect2);
+            SDL_RenderCopy(renderer, bg1Texture, NULL, &bgRect3);
             SDL_RenderCopy(renderer, bgTexture, NULL, &bgRect0);
             SDL_RenderCopy(renderer, bgTexture, NULL, &bgRect1);
         }
@@ -112,7 +155,7 @@ class player {
 };
 class cube {
     private:
-        SDL_Surface *cubeSurface = IMG_Load("assets/images/storageCube/storageCubeSheet.png");
+        SDL_Surface *cubeSurface = IMG_Load("assets/images/storageCube/storageCube.png");
         SDL_Rect cubeRect;
         SDL_Rect cubeClip;
         const int initSpeed = -10,
@@ -123,15 +166,15 @@ class cube {
             posY = 0,
             wait = 0,
             now = 0,
-            animCount = 0;
+            animCount = rand() % 19;
     public:
         void initCube() {
             cubeRect.w = width;
             cubeRect.h = height;
             posX = -64;
             cubeClip.y = 0;
-            cubeClip.w = 40;
-            cubeClip.h = 40;
+            cubeClip.w = 32;
+            cubeClip.h = 32;
         }
         void scrollCube() {
             now++;
@@ -139,7 +182,7 @@ class cube {
                 posX += currentSpeed;
             }
             if(posX <= -width) {
-                posX = WIDTH;
+                posX = WIDTH + 10;
                 posY = rand() %HEIGHT;
                 wait = rand() %250 + 10;
                 now = 0;
@@ -148,11 +191,11 @@ class cube {
         void drawCube(SDL_Renderer *renderer) {
             cubeRect.x = posX;
             cubeRect.y = posY;
-            cubeClip.x = animCount*40;
+            //cubeClip.x = animCount*32;
             SDL_Texture *cubeTexture = SDL_CreateTextureFromSurface(renderer, cubeSurface);
-            SDL_RenderCopy(renderer, cubeTexture, &cubeClip, &cubeRect);
+            SDL_RenderCopyEx(renderer, cubeTexture, NULL, &cubeRect, animCount*20, NULL, SDL_FLIP_NONE);
             animCount++;
-            if(animCount >= 23) {
+            if(animCount >= 19) {
                 animCount = 0;
             }
         }
@@ -207,8 +250,7 @@ class audio {
     private:
         const char *bgSrc = "assets/music/bgUnused.wav";
         const char *hurtSrc = "assets/sounds/hit.wav";
-        
-        Mix_Chunk *hurtChunk = Mix_LoadWAV(hurtSrc);
+        const char *gameOverSrc = "assets/sounds/gameOver.wav";
     public:
         void initMusic() {
             Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
@@ -217,15 +259,22 @@ class audio {
             Mix_Music *bgMusic = Mix_LoadMUS(bgSrc);
             Mix_PlayMusic(bgMusic, -1);
         }
+        void stopBG() {
+            Mix_HaltMusic();
+        }
         void playHurt() {
             Mix_Chunk *hurtChunk = Mix_LoadWAV(hurtSrc);
             Mix_PlayChannel(0, hurtChunk, 0);
         }
+        void playGameOver() {
+            Mix_Chunk *gameOverChunk = Mix_LoadWAV(gameOverSrc);
+            Mix_PlayChannel(0, gameOverChunk, 0);
+        }
 };
 class text {
     private:
-        TTF_Font *comicMono = TTF_OpenFont("assets/fonts/comicMono.ttf", 16);
-        TTF_Font *comicGameOver = TTF_OpenFont("assets/fonts/comicMono.ttf", 64);
+        TTF_Font *comicMono = TTF_OpenFont("assets/fonts/upHeav.ttf", 16);
+        TTF_Font *comicGameOver = TTF_OpenFont("assets/fonts/upHeav.ttf", 64);
         SDL_Color White = {255, 255, 255};
         //Text contents
         SDL_Surface *objective = TTF_RenderText_Solid(comicMono, "NULL", White);
@@ -289,4 +338,80 @@ class text {
             SDL_RenderCopy(renderer, gameOverTexture, NULL, &gameOverRect);
             SDL_RenderCopy(renderer, gameOverSubtextTexture, NULL, &gameOverSubtextRect);
         }
+};
+class npc {
+    private:
+    SDL_Surface *npcSurface = IMG_Load("assets/images/npc.png");
+    SDL_Rect npcRect;
+        int posX,
+            posY,
+            dirX,
+            dirY,
+            lastDirX,
+            lastDirY,
+            npcCount = 0,
+            npcWait = 0;
+        const int npcPauseTime = 40,
+                npcSpeed = 5,
+                npcMoveDistance = 30,
+                width = 60,
+                height = 60;
+    public:
+    void initNPC() {
+        npcRect.w = width;
+        npcRect.h = height;
+        posX = 320;
+        posY = 240;
+    }
+    void moveNPC() {
+        if(npcCount == 0) {
+            dirX = rand() % 3 - 1;
+            dirY = rand() % 3 - 1;
+        }
+        if(dirX != 0) {
+            lastDirX = dirX;
+        }
+        if(dirY != 0) {
+            lastDirY = dirY;
+        }
+        npcCount++;
+        if(npcCount >= npcMoveDistance) {
+            npcCount = 0;
+            npcWait++;
+        }
+        if(npcWait != 0) {
+            npcWait += 1;
+        }
+        if(npcWait >= npcPauseTime) {
+            npcWait = 0;
+        }
+
+        if(posX > WIDTH - width) {
+            posX = WIDTH - width;
+        }
+        if(posY > HEIGHT - height) {
+            posY = HEIGHT - height;
+        }
+        if(posX < 0) {
+            posX = 0;
+        }
+        if(posY < 0) {
+            posY = 0;
+        }
+        if(npcWait == 0) {
+            posX += dirX * npcSpeed;
+            posY += dirY * npcSpeed;
+        }
+        npcRect.x = posX;
+        npcRect.y = posY;
+    }
+    void drawNPC(SDL_Renderer *renderer) {
+        SDL_Texture *npcTexture = SDL_CreateTextureFromSurface(renderer, npcSurface);
+        if(lastDirX == 1) {
+            SDL_RenderCopyEx(renderer, npcTexture, NULL, &npcRect, 0, NULL, SDL_FLIP_HORIZONTAL);
+        }else {
+            SDL_RenderCopy(renderer, npcTexture, NULL, &npcRect);
+        }
+    }
+    
 };

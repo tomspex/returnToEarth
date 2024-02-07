@@ -11,9 +11,9 @@ int main() {
     SDL_Window   *mainWindow = NULL;
     SDL_Renderer *mainRenderer = NULL;
     initSDL(mainWindow, mainRenderer);
-    mainWindow = SDL_CreateWindow("Return to Earth", 100, 100, WIDTH, HEIGHT, 0);
+    mainWindow = SDL_CreateWindow("Return to Earth", 100, 100, WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
 	mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
-    //SDL_RenderSetLogicalSize(mainRenderer, 320, 240);
+    SDL_RenderSetLogicalSize(mainRenderer, 640, 480);
     // ============= Window Setup End ==============
 
     audio audio;
@@ -22,11 +22,13 @@ int main() {
     
     bg bg;
     player player;
+    npc npc;
     cubeBunch cubeBunch;
     text text;
     
     bg.initBG();
     player.initPlayer();
+    npc.initNPC();
     cubeBunch.initCubes();
     text.initText();
     text.updateObjective("Objective: Get to Earth");
@@ -42,10 +44,12 @@ int main() {
 
         bg.scrollBG();
         player.playerMovement();
+        npc.moveNPC();
         cubeBunch.scrollCubes();
 
         bg.drawBG(mainRenderer);
         player.drawPlayer(mainRenderer);
+        npc.drawNPC(mainRenderer);
         cubeBunch.drawCubes(mainRenderer);
         text.drawText(mainRenderer);
 
@@ -53,13 +57,18 @@ int main() {
             if(!alreadyHit) {
                 alreadyHit = 1;
                 health = player.hurt();
+                bg.shakeBG();
                 text.updateHealth(health);
                 audio.playHurt();
 
                 if(health == 0) {
                     text.gameOverText(mainRenderer);
                     SDL_RenderPresent(mainRenderer);
+                    audio.playGameOver();
+                    audio.stopBG();
                     player.gameOver();
+                    audio.playBG();
+                    npc.initNPC();
                     bg.initBG();
                     cubeBunch.initCubes();
                     bg.drawBG(mainRenderer);
