@@ -12,16 +12,17 @@ but I decided to port it to C++ with SDL2 for fun.</p>
 I didn't include the dependencies in this repository. You'll have to find them elsewhere.</p>
 
 <h3>Current State</h3>
-<p>The game currently has movement, sprites, music, sounds, scrolling cubes and a scrolling star background.</p>
+<p>The game currently has movement, sprites, music, sounds, scrolling cubes, a scrolling star background,
+a gameover screen, a score-health-objective system with a small UI and a restart button.</p>
 
 <h3>Goals</h3>
-<p>I want to add a score counter, health system, an npc with dialogue, levels and perhaps an end sequence.
+<p>I want to add an npc with dialogue, levels and perhaps an end sequence in the future.
 I'm certain this list will grow.</p>
 
 <h3>Demonstration</h3>
 <p>Click the image to view the demonstration on YouTube.</p>
-<a href="https://www.youtube.com/watch?v=hdL65sY8JxY">
-    <img src="https://img.youtube.com/vi/hdL65sY8JxY/0.jpg">
+<a href="https://www.youtube.com/watch?v=7snsXcVeIFc">
+    <img src="https://img.youtube.com/vi/7snsXcVeIFc/0.jpg">
 </a>
 <h1>Bye Now</h1>
 <div style="display:flex;">
