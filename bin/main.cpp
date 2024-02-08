@@ -25,6 +25,7 @@ int main() {
     npc npc;
     cubeBunch cubeBunch;
     text text;
+    progressBar progressBar;
     
     bg.initBG();
     player.initPlayer();
@@ -46,12 +47,15 @@ int main() {
         player.playerMovement();
         npc.moveNPC();
         cubeBunch.scrollCubes();
+        progressBar.updateProgressBar();
 
         bg.drawBG(mainRenderer);
         player.drawPlayer(mainRenderer);
         npc.drawNPC(mainRenderer);
         cubeBunch.drawCubes(mainRenderer);
         text.drawText(mainRenderer);
+        progressBar.drawProgressBar(mainRenderer);
+
 
         if(cubeBunch.detectCollisions(player.getPlayerRect())) {
             if(!alreadyHit) {

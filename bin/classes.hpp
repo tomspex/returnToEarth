@@ -280,12 +280,14 @@ class text {
         SDL_Surface *objective = TTF_RenderText_Solid(comicMono, "NULL", White);
         SDL_Surface *health = TTF_RenderText_Solid(comicMono, "NULL", White);
         SDL_Surface *score = TTF_RenderText_Solid(comicMono, "NULL", White);
+        SDL_Surface *progress = TTF_RenderText_Blended(comicMono, "Progress:", White);
         SDL_Surface *gameOver = TTF_RenderText_Blended(comicGameOver, "Game Over!", White);
         SDL_Surface *gameOverSubtext = TTF_RenderText_Blended(comicMono, "Press T to Restart", White);
 
         SDL_Rect objectiveRect;
         SDL_Rect healthRect;
         SDL_Rect scoreRect;
+        SDL_Rect progressRect;
         SDL_Rect gameOverRect;
         SDL_Rect gameOverSubtextRect;
     public:
@@ -296,6 +298,10 @@ class text {
             healthRect.y = 25;
             scoreRect.x = 5;
             scoreRect.y = 45;
+            progressRect.w = progress->w;
+            progressRect.h = progress->h;
+            progressRect.x = WIDTH-220;
+            progressRect.y = 5;
             gameOverRect.x = WIDTH/2-gameOver->w/2;
             gameOverRect.y = HEIGHT/2-gameOver->h;
             gameOverRect.w = gameOver->w;
@@ -328,15 +334,38 @@ class text {
             SDL_Texture *objectiveTexture = SDL_CreateTextureFromSurface(renderer, objective);
             SDL_Texture *healthTexture = SDL_CreateTextureFromSurface(renderer, health);
             SDL_Texture *scoreTexture = SDL_CreateTextureFromSurface(renderer, score);
+            SDL_Texture *progressTexture = SDL_CreateTextureFromSurface(renderer, progress);
             SDL_RenderCopy(renderer, objectiveTexture, NULL, &objectiveRect);
             SDL_RenderCopy(renderer, healthTexture, NULL, &healthRect);
             SDL_RenderCopy(renderer, scoreTexture, NULL, &scoreRect);
+            SDL_RenderCopy(renderer, progressTexture, NULL, &progressRect);
         }
         void gameOverText(SDL_Renderer *renderer) {
             SDL_Texture *gameOverTexture = SDL_CreateTextureFromSurface(renderer, gameOver);
             SDL_Texture *gameOverSubtextTexture = SDL_CreateTextureFromSurface(renderer, gameOverSubtext);
             SDL_RenderCopy(renderer, gameOverTexture, NULL, &gameOverRect);
             SDL_RenderCopy(renderer, gameOverSubtextTexture, NULL, &gameOverSubtextRect);
+        }
+};
+class progressBar {
+    private:
+        int x2 = 500;
+        const int fullBar = 200;
+        const SDL_Rect barBase = {WIDTH-220, 20, fullBar, 16};
+        SDL_Rect currentProgress = {WIDTH-220, 20, 0, 16};
+    public:
+        void updateProgressBar() {
+            currentProgress.w = score;
+            if(score >= fullBar) {
+                currentProgress.w = fullBar;
+            }
+        }
+        void drawProgressBar(SDL_Renderer *renderer) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderFillRect(renderer, &barBase);
+            SDL_SetRenderDrawColor(renderer, 139, 155, 180, 255);
+            SDL_RenderFillRect(renderer, &currentProgress);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         }
 };
 class npc {
