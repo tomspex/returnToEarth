@@ -26,15 +26,20 @@ int main() {
     cubeBunch cubeBunch;
     text text;
     progressBar progressBar;
+
+    bg.setTextures(mainRenderer);
+    player.setTextures(mainRenderer);
+    npc.setTextures(mainRenderer);
+    cubeBunch.setTextures(mainRenderer);
     
     bg.initBG();
     player.initPlayer();
     npc.initNPC();
     cubeBunch.initCubes();
-    text.initText();
-    text.updateObjective("Objective: Get to Earth");
-    text.updateHealth(player.getHealth());
-    text.updateScore(0);
+    text.initText(mainRenderer);
+    text.updateObjectiveValue("Get to Earth", mainRenderer);
+    text.updateHealthValue(player.getHealth(), mainRenderer);
+    text.updateScoreValue(0, mainRenderer);
     
 
     bool quit = false;
@@ -60,16 +65,17 @@ int main() {
         if(cubeBunch.detectCollisions(player.getPlayerRect())) {
             if(!alreadyHit) {
                 alreadyHit = 1;
-                health = player.hurt();
-                bg.shakeBG();
-                text.updateHealth(health);
-                audio.playHurt();
+                health = 3;
+                //bg.shakeBG();
+                //text.updateHealthValue(health, mainRenderer);
+                //audio.playHurt();
 
                 if(health == 0) {
                     text.gameOverText(mainRenderer);
                     SDL_RenderPresent(mainRenderer);
-                    audio.playGameOver();
+                    //audio.playGameOver();
                     audio.stopBG();
+                    progressBar.resetLevelProgressOffset();
                     player.gameOver();
                     audio.playBG();
                     npc.initNPC();
@@ -87,7 +93,8 @@ int main() {
 
         if(clockI == 0) {
             score++;
-            text.updateScore(score);
+            text.updateScoreValue(score, mainRenderer);
+            text.updateLevelValue(level, mainRenderer);
         }
         clockI = updateClock(clockI);
 
@@ -101,6 +108,7 @@ int main() {
     }
 
     // ============ Window Close Start =============
+    text.destroyText();
     quitSDL(mainWindow, mainRenderer);
     return (0);
     // ============= Window Close End ==============
