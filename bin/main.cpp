@@ -65,21 +65,22 @@ int main() {
         if(cubeBunch.detectCollisions(player.getPlayerRect())) {
             if(!alreadyHit) {
                 alreadyHit = 1;
-                health = 3;
-                //bg.shakeBG();
-                //text.updateHealthValue(health, mainRenderer);
-                //audio.playHurt();
+                health = player.hurt();
+                bg.shakeBG();
+                text.updateHealthValue(health, mainRenderer);
+                audio.playHurt();
 
                 if(health == 0) {
                     text.gameOverText(mainRenderer);
                     SDL_RenderPresent(mainRenderer);
-                    //audio.playGameOver();
+                    audio.playGameOver();
                     audio.stopBG();
                     progressBar.resetLevelProgressOffset();
                     player.gameOver();
                     audio.playBG();
                     npc.initNPC();
                     bg.initBG();
+                    text.updateHealthValue(player.getHealth(), mainRenderer);
                     cubeBunch.initCubes();
                     bg.drawBG(mainRenderer);
                     cubeBunch.drawCubes(mainRenderer);
@@ -108,7 +109,7 @@ int main() {
     }
 
     // ============ Window Close Start =============
-    text.destroyText();
+    audio.freeAudio();
     quitSDL(mainWindow, mainRenderer);
     return (0);
     // ============= Window Close End ==============
