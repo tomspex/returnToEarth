@@ -1,17 +1,13 @@
-#include "include/SDL2/SDL.h"
-#include "include/SDL2/SDL_image.h"
-#include "include/SDL2/SDL_mixer.h"
-#include "include/SDL2/SDL_ttf.h"
 #include "constants.hpp"
 #include "SDLfunctions.hpp"
 #include "classes.hpp"
 
-int main() {
+int main(int argc, char* argv[]) {
     // ============ Window Setup Start =============
     SDL_Window   *mainWindow = NULL;
     SDL_Renderer *mainRenderer = NULL;
     initSDL(mainWindow, mainRenderer);
-    mainWindow = SDL_CreateWindow("Return to Earth", 100, 100, WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
+    mainWindow = SDL_CreateWindow("Return to Earth", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
 	mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
     SDL_RenderSetLogicalSize(mainRenderer, 640, 480);
     // ============= Window Setup End ==============
@@ -52,7 +48,6 @@ int main() {
         player.playerMovement();
         npc.moveNPC();
         cubeBunch.scrollCubes();
-        progressBar.updateProgressBar();
 
         bg.drawBG(mainRenderer);
         player.drawPlayer(mainRenderer);
@@ -75,8 +70,14 @@ int main() {
                     SDL_RenderPresent(mainRenderer);
                     audio.playGameOver();
                     audio.stopBG();
-                    progressBar.resetLevelProgressOffset();
-                    player.gameOver();
+                    player.setLevel(0);
+                    int quit = player.gameOver();
+                    if(quit == 2) {
+                        audio.freeAudio();
+                        quitSDL(mainWindow, mainRenderer);
+                        return (0);
+                    }
+                    progressBar.updateProgressBar(0);
                     audio.playBG();
                     npc.initNPC();
                     bg.initBG();
@@ -93,14 +94,19 @@ int main() {
 
 
         if(clockI == 0) {
-            score++;
-            text.updateScoreValue(score, mainRenderer);
-            text.updateLevelValue(level, mainRenderer);
+            player.setScore(player.getScore() + 1);
+            player.setProgress(player.getProgress() + 1);
+            if(progressBar.updateProgressBar(player.getProgress()) == 1) {
+                player.setProgress(0);
+                player.setLevel(player.getLevel() + 1);
+            }
+            text.updateScoreValue(player.getScore(), mainRenderer);
+            text.updateLevelValue(player.getLevel(), mainRenderer);
         }
         clockI = updateClock(clockI);
 
         // ============  Game Code End  =============
-        SDL_Event e;
+        SDL_Event e{};
         handleEvents(quit, e);
 
         SDL_RenderPresent(mainRenderer);

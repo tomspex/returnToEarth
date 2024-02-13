@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+
 #include <iostream>
 #include "constants.hpp"
 #include "global.hpp"

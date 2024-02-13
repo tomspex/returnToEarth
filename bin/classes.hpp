@@ -1,6 +1,12 @@
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+
 #include "keyInputs.hpp"
 #include "constants.hpp"
 #include <iostream>
+#include <string>
 using namespace std;
 
 class bg {
@@ -31,6 +37,13 @@ class bg {
             bgRect3.h = bgSurface->h;
             bgRect4.h = bgSurface->h;
             bgRect5.h = bgSurface->h;
+
+            bgRect0.y = 0;
+            bgRect1.y = 0;
+            bgRect2.y = 0;
+            bgRect3.y = 0;
+            bgRect4.y = 0;
+            bgRect5.y = 0;
             scroll0 = 0;
             scroll1 = 0;
         }
@@ -88,7 +101,10 @@ class player {
             playerWidth = 60,
             playerHeight = 60,
             playerHealth = initPlayerHealth,
-            playerSpeed = 5;
+            playerSpeed = 5,
+            level = 0,
+            score = 0,
+            progress = 0;
         bool flipSprite;
     public:
         void setTextures(SDL_Renderer *renderer) {
@@ -127,16 +143,37 @@ class player {
                 SDL_RenderCopy(renderer, playerTexture, NULL, &playerRect);
             }
         }
+        int getLevel() {
+            return(level);
+        }
+        void setLevel(int value) {
+            level = value;
+        }
+        int getScore() {
+            return(score);
+        }
+        void setScore(int newScore) {
+            score = newScore;
+        }
+        int getProgress() {
+            return(progress);
+        }
+        void setProgress(int newProgress) {
+            progress = newProgress;
+        }
         int getHealth() {
             return(playerHealth);
+        }
+        SDL_Rect getPlayerRect() {
+            return(playerRect);
         }
         int hurt() {
             playerHealth -= 1;
             return(playerHealth);
         }
-        void gameOver() {
-            bool waiting = true;
-            while(waiting) {
+        int gameOver() {
+            short waiting=0;
+            while(waiting==0) {
                 posX -= 10;
                 if(posX <= -playerWidth) {
                     posX = -playerWidth;
@@ -147,16 +184,20 @@ class player {
                     initPlayer();
                     score = 0;
                     
-                    waiting = false;
+                    waiting=1;
                 }
                 SDL_Delay(30);
 
                 SDL_Event e;
-                while( SDL_PollEvent( &e ) != 0 ) {}
+                while( SDL_PollEvent( &e ) != 0 ) {
+                    // checks for exit button pressed
+                    if( e.type == SDL_QUIT )
+                    {
+                        waiting=2;
+                    }
+                }
             }
-        }
-        SDL_Rect getPlayerRect() {
-            return(playerRect);
+            return(waiting);
         }
 };
 class cube {
@@ -242,7 +283,7 @@ class cubeBunch {
             cube4.scrollCube();
         }
         bool detectCollisions(SDL_Rect playerRect) {
-            short checkAll;
+            short checkAll = 0;
             checkAll += cube0.detectCollision(playerRect);
             checkAll += cube1.detectCollision(playerRect);
             checkAll += cube2.detectCollision(playerRect);
@@ -272,7 +313,7 @@ class audio {
         void initMusic() {
             Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
 
-            bgMusic = Mix_LoadMUS("assets/music/bgUnused.wav");
+            bgMusic = Mix_LoadMUS("assets/music/bg.wav");
 
             hurtChunk = Mix_LoadWAV("assets/sounds/hit.wav");
             gameOverChunk = Mix_LoadWAV("assets/sounds/gameOver.wav");
@@ -289,6 +330,11 @@ class audio {
         void playGameOver() {
             
             Mix_PlayChannel(0, gameOverChunk, 0);
+        }
+        void freeAudio() {
+            Mix_FreeMusic(bgMusic);
+            Mix_FreeChunk(hurtChunk);
+            Mix_FreeChunk(gameOverChunk);
         }
 };
 class text {
@@ -447,38 +493,19 @@ class text {
             SDL_RenderCopy(renderer, gameOverTexture, NULL, &gameOverRect);
             SDL_RenderCopy(renderer, gameOverSubtextTexture, NULL, &gameOverSubtextRect);
         }
-        void destroyText() {
-            // FIXED
-            SDL_DestroyTexture(objectiveTexture);
-            SDL_DestroyTexture(healthTexture);
-            SDL_DestroyTexture(scoreTexture);
-            SDL_DestroyTexture(progressTexture);
-            SDL_DestroyTexture(levelTexture);
-            SDL_DestroyTexture(gameOverTexture);
-            SDL_DestroyTexture(gameOverSubtextTexture);
-            // VALUES
-            SDL_DestroyTexture(objectiveValueTexture);
-            SDL_DestroyTexture(healthValueTexture);
-            SDL_DestroyTexture(scoreValueTexture);
-            SDL_DestroyTexture(levelValueTexture);
-        }
 };
 class progressBar {
     private:
-        int x2 = 500, levelProgressOffset = 0;
-        const int fullBar = 200;
-        const SDL_Rect barBase = {WIDTH-220, 20, fullBar, 16};
+        const int fullBar = 50, scale=200/fullBar;
+        const SDL_Rect barBase = {WIDTH-220, 20, fullBar*scale, 16};
         SDL_Rect currentProgress = {WIDTH-220, 20, 0, 16};
     public:
-        void resetLevelProgressOffset() {
-            levelProgressOffset = 0;
-        }
-        void updateProgressBar() {
-            currentProgress.w = score - levelProgressOffset;
-            if(currentProgress.w >= fullBar) {
-                levelProgressOffset += currentProgress.w;
-                level++;
+        int updateProgressBar(int newLevel) {
+            currentProgress.w = scale*newLevel;
+            if(currentProgress.w >= fullBar*scale) {
+                return(1);
             }
+            return(0);
         }
         void drawProgressBar(SDL_Renderer *renderer) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
